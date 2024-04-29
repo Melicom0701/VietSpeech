@@ -4,7 +4,6 @@ const path = require('path');
 const SaveWav = (req, res, next) => {
     try {
         const file = req.file;
-        console.log(file);
         next();
     } catch (error) {
         res

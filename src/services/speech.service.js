@@ -8,11 +8,10 @@ const _ = require("lodash");
 
 
 // pronunciation assessment with audio file
-const main = () => {
-
+const main = async (req,res) => {
     var audioConfig = sdk.AudioConfig.fromWavFileInput(fs.readFileSync(process.env.filename));
     var speechConfig = sdk.SpeechConfig.fromSubscription(process.env.subscriptionKey, process.env.serviceRegion);
-    var reference_text = "Con cá";
+    var reference_text = req.body.text;
     // create pronunciation assessment config, set grading system, granularity and if enable miscue based on your requirement.
     const pronunciationAssessmentConfig = new sdk.PronunciationAssessmentConfig(
         reference_text,
@@ -29,26 +28,25 @@ const main = () => {
     var reco = new sdk.SpeechRecognizer(speechConfig, audioConfig);
     pronunciationAssessmentConfig.applyTo(reco);
 
-    function onRecognizedResult(result) {
-        console.log("pronunciation assessment for: ", result.text);
-        var pronunciation_result = sdk.PronunciationAssessmentResult.fromResult(result);
-        console.log(" Accuracy score: ", pronunciation_result.accuracyScore, '\n',
-            "pronunciation score: ", pronunciation_result.pronunciationScore, '\n',
-            "completeness score : ", pronunciation_result.completenessScore, '\n',
-            "fluency score: ", pronunciation_result.fluencyScore, '\n',
-            "prosody score: ", pronunciation_result.prosodyScore
-        );
-        console.log("  Word-level details:");
-        _.forEach(pronunciation_result.detailResult.Words, (word, idx) => {
-            console.log("    ", idx + 1, ": word: ", word.Word, "\taccuracy score: ", word.PronunciationAssessment.AccuracyScore, "\terror type: ", word.PronunciationAssessment.ErrorType, ";");
-            console.log(word.Phonemes);
-        });
-        reco.close();
+    async function onRecognizedResult(result) {
+        var pronunciation_result = await sdk.PronunciationAssessmentResult.fromResult(result);
+        const res = {
+            accuracyScore: pronunciation_result.accuracyScore,
+            pronunciationScore: pronunciation_result.pronunciationScore,
+            completenessScore: pronunciation_result.completenessScore,
+            fluencyScore: pronunciation_result.fluencyScore,
+            prosodyScore: pronunciation_result.prosodyScore,
+            detailResult: pronunciation_result.detailResult
+        }
+
+        return res;
     }
 
     reco.recognizeOnceAsync(
-        function (successfulResult) {
-            onRecognizedResult(successfulResult);
+        async function (successfulResult) {
+            const result = await onRecognizedResult(successfulResult);
+            res.send(result);
+            reco.close();
         }
     )
 }

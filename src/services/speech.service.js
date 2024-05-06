@@ -9,6 +9,8 @@ const _ = require("lodash");
 
 // pronunciation assessment with audio file
 const main = async (req,res) => {
+    //read file from blob 
+    
     var audioConfig = sdk.AudioConfig.fromWavFileInput(fs.readFileSync(process.env.filename));
     var speechConfig = sdk.SpeechConfig.fromSubscription(process.env.subscriptionKey, process.env.serviceRegion);
     var reference_text = req.body.text;
@@ -45,6 +47,7 @@ const main = async (req,res) => {
     reco.recognizeOnceAsync(
         async function (successfulResult) {
             const result = await onRecognizedResult(successfulResult);
+            console.log(result);
             res.send(result);
             reco.close();
         }

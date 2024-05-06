@@ -10,12 +10,12 @@ const storage = multer.diskStorage({
       cb(null, 'uploads/');
     },
     filename: function (req, file, cb) {
-      cb(null, "audio.wav");
+      cb(null, "audio.webm");
     }
   });
   const upload = multer({ storage: storage });
 
 
 
-router.post("/pronunciation", upload.single('file') ,mediaMiddleware.SaveWav,speechController.pronunciation);
+router.post("/pronunciation", upload.single('stream') , mediaMiddleware.converter,speechController.pronunciation);
 module.exports = router;
